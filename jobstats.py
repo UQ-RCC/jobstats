@@ -251,6 +251,8 @@ class JobStats:
                 if time:
                     params['time'] = time
             response = requests.get('{0}/api/v1/{1}'.format(self.prom_server, qstr), params)
+            self.debug_print('{0}/api/v1/{1}'.format(self.prom_server, qstr))
+            self.debug_print(str(params))
             return response.json()
         
         expanded_query = query%(self.cluster, self.jobidraw, self.diff)
@@ -409,7 +411,8 @@ class JobStats:
         zero_cpu = False  # TODO
         gpu_show = True   # TODO
         # low GPU utilization
-        interactive_job = "sys/dashboard/sys/" in self.jobname or self.jobname == "interactive"
+        #interactive_job = "sys/dashboard/sys/" in self.jobname or self.jobname == "interactive"
+        interactive_job = c.INTERACTIVE_STR in self.jobname or self.partition in c.INTERACTIVE_PARTITIONS
         # low cpu utilization
         somewhat = " " if self.cpu_efficiency < c.CPU_UTIL_RED else " somewhat "
         ceff = self.cpu_efficiency if self.cpu_efficiency > 0 else "less than 1"
