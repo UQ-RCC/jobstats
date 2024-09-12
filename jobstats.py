@@ -646,7 +646,7 @@ class JobStats:
             self.gpu_mem__node_used_total_index = []
             for n in sp_node:
                 d = sp_node[n]
-                gpus = list(d['gpu_total_memory'].keys())
+                gpus = list(d.get('gpu_total_memory',{}).keys())
                 gpus.sort()
                 for g in gpus:
                     used = d['gpu_used_memory'][g]
