@@ -79,10 +79,10 @@ condition = '(not zero_gpu) and self.gpus and (self.gpu_utilization <= c.GPU_UTI
 #        'f"do not create \"salloc\" or OnDemand sessions for more than 12 hours unless you "' \
 #        'f"plan to work intensively during the entire period. For more info:"',
 #        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing#util")
-note = ('f"The overall GPU utilization of this job is only {round(self.gpu_utilization)}%. "' \
-        'f"This value is low and you should consider using a less powerful GPU. Please "' \
-        'f"do not create \"salloc\" or OnDemand sessions for more than 12 hours unless you "' \
-        'f"plan to work intensively during the entire period. For more info:"',
+note = ('f"The overall GPU utilization of this job is only {round(self.gpu_utilization)}%. ' \
+        'This value is low and you should consider using a less powerful GPU. Please ' \
+        'do not create salloc or OnDemand sessions for more than 12 hours unless you ' \
+        'plan to work intensively during the entire period. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/OnDemand-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
@@ -94,9 +94,9 @@ condition = '(not zero_gpu) and self.gpus and (self.gpu_utilization <= c.GPU_UTI
 #        '"This value is low compared to the cluster mean value of 50%. Please "' \
 #        '"investigate the reason for the low utilization. For more info:"',
 #        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing#util")
-note = ('f"The overall GPU utilization of this job is only {round(self.gpu_utilization)}%. "' \
-        'f"This value is low and you should consider using a less powerful GPU. Please "' \
-        '"investigate the reason for the low utilization. For more info:"',
+note = ('f"The overall GPU utilization of this job is only {round(self.gpu_utilization)}%. ' \
+        'This value is low and you should consider using a less powerful GPU. Please ' \
+        'investigate the reason for the low utilization. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
@@ -106,10 +106,10 @@ condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency <= c.CP
             'and (self.cpu_efficiency > c.CPU_UTIL_RED) and int(self.ncpus) > 1 ' \
             'and (not interactive_job)'
 
-note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"80% and above. Please investigate the reason for the low efficiency. "' \
-        '"For instance, have you conducted a scaling analysis? For more info:"',
+note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
+        'is{somewhat}low compared to the target range of ' \
+        '80% and above. Please investigate the reason for the low efficiency. ' \
+        'For instance, have you conducted a scaling analysis? For more info:',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
@@ -117,10 +117,10 @@ NOTES.append((condition, note, style))
 # low CPU utilization (red, more than one core)
 condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency < c.CPU_UTIL_RED) ' \
             'and (int(self.ncpus) > 1) and (not interactive_job)'
-note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"80% and above. Please investigate the reason for the low efficiency. "' \
-        '"For instance, have you conducted a scaling analysis? For more info:"',
+note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
+        'is{somewhat}low compared to the target range of ' \
+        '80% and above. Please investigate the reason for the low efficiency. ' \
+        'For instance, have you conducted a scaling analysis? For more info:',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
@@ -128,10 +128,10 @@ NOTES.append((condition, note, style))
 # low CPU utilization (black, serial job)
 condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency <= c.CPU_UTIL_BLACK) ' \
             'and (self.cpu_efficiency > c.CPU_UTIL_RED) and int(self.ncpus) == 1'
-note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"80% and above. Please investigate the reason for the low efficiency. "' \
-        '"For more info:"',
+note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
+        'is{somewhat}low compared to the target range of ' \
+        '80% and above. Please investigate the reason for the low efficiency. ' \
+        'For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
@@ -139,10 +139,10 @@ NOTES.append((condition, note, style))
 # low CPU utilization (red, serial job)
 condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency < c.CPU_UTIL_RED) ' \
             'and (int(self.ncpus) == 1)'
-note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"80% and above. Please investigate the reason for the low efficiency. "' \
-        '"For more info:"',
+note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
+        'is{somewhat}low compared to the target range of ' \
+        '80% and above. Please investigate the reason for the low efficiency. ' \
+        'For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
@@ -168,11 +168,11 @@ NOTES.append((condition, note, style))
 
 # excessive run time limit (red)
 condition = 'self.time_eff_violation and self.time_efficiency <= c.TIME_EFFICIENCY_RED'
-note = ('f"This job only needed {self.time_efficiency}% of the requested time "' \
-        'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.timelimitraw)}. "' \
-        '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. This will "' \
-        '"lower your queue times and allow the Slurm job scheduler to work more "' \
+note = ('f"This job only needed {self.time_efficiency}% of the requested time ' \
+        'which was {self.human_seconds(SECONDS_PER_MINUTE * self.timelimitraw)}. ' \
+        'For future jobs, please request less time by modifying ' \
+        'the --time Slurm directive. This will ' \
+        'lower your queue times and allow the Slurm job scheduler to work more ' \
         '"effectively for all users. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
@@ -180,12 +180,12 @@ NOTES.append((condition, note, style))
 
 # excessive run time limit (black)
 condition = 'self.time_eff_violation and self.time_efficiency > c.TIME_EFFICIENCY_RED'
-note = ('f"This job only needed {self.time_efficiency}% of the requested time "' \
-        'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.timelimitraw)}. "' \
-        '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. This will "' \
-        '"lower your queue times and allow the Slurm job scheduler to work more "' \
-        '"effectively for all users. For more info:"',
+note = ('f"This job only needed {self.time_efficiency}% of the requested time ' \
+        'which was {self.human_seconds(SECONDS_PER_MINUTE * self.timelimitraw)}. ' \
+        'For future jobs, please request less time by modifying ' \
+        'the --time Slurm directive. This will ' \
+        'lower your queue times and allow the Slurm job scheduler to work more ' \
+        'effectively for all users. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
@@ -205,13 +205,13 @@ condition = '(not zero_gpu) and (not zero_cpu) and (cpu_memory_utilization < c.M
             '(not self.partition == "datascience") and (not self.partition == "mig") and ' \
             '(self.state != "OUT_OF_MEMORY") and (cores_per_node < cpn) and ' \
             '(self.diff > c.MIN_RUNTIME_SECONDS) and (not interactive_job)'
-note = ('f"This job {opening} of the {self.cpu_memory_formatted(with_label=False)} "' \
-        '"of total allocated CPU memory. "' \
-        '"For future jobs, please allocate less memory by using a Slurm directive such "' \
-        'f"as --mem-per-cpu={self.rounded_memory_with_safety(gb_per_core_used)}G or "' \
-        'f"--mem={self.rounded_memory_with_safety(gb_per_node_used)}G. "' \
-        '"This will reduce your queue times and make the resources available to "' \
-        '"other users. For more info:"',
+note = ('f"This job {opening} of the {self.cpu_memory_formatted(with_label=False)} ' \
+        'of total allocated CPU memory. ' \
+        'For future jobs, please allocate less memory by using a Slurm directive such ' \
+        'as --mem-per-cpu={self.rounded_memory_with_safety(gb_per_core_used)}G or ' \
+        '--mem={self.rounded_memory_with_safety(gb_per_node_used)}G. ' \
+        'This will reduce your queue times and make the resources available to ' \
+        'other users. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
@@ -219,20 +219,20 @@ NOTES.append((condition, note, style))
 # serial jobs wasting multiple cpu-cores
 condition = '(self.nnodes == "1") and (int(self.ncpus) > 1) and (not self.gpus) and (serial_ratio > 0.85 ' \
             'and serial_ratio < 1.1)'
-note = ('f"The CPU utilization of this job ({self.cpu_efficiency}%) is{approx}equal "' \
-        '"to 1 divided by the number of allocated CPU-cores "' \
-        'f"(1/{self.ncpus}={round(eff_if_serial)}%). This suggests that you may be "' \
-        '"running a code that can only use 1 CPU-core. If this is true then "' \
-        '"allocating more than 1 CPU-core is wasteful. Please consult the "' \
-        '"documentation for the software to see if it is parallelized. For more info:"',
+note = ('f"The CPU utilization of this job ({self.cpu_efficiency}%) is{approx}equal ' \
+        'to 1 divided by the number of allocated CPU-cores ' \
+        '(1/{self.ncpus}={round(eff_if_serial)}%). This suggests that you may be ' \
+        'running a code that can only use 1 CPU-core. If this is true then"' \
+        'allocating more than 1 CPU-core is wasteful. Please consult the ' \
+        'documentation for the software to see if it is parallelized. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
 
 # job ran in the test queue
 condition = '"test" in self.qos or "debug" in self.qos'
-note = ('f"This job ran in the {self.qos} QOS. Each user can only run a small number of "' \
-        '"jobs simultaneously in this QOS. For more info:"',
+note = ('f"This job ran in the {self.qos} QOS. Each user can only run a small number of ' \
+        'jobs simultaneously in this QOS. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
