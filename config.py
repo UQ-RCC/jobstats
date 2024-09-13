@@ -120,7 +120,7 @@ condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency < c.CPU
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
         'is{somewhat}low compared to the target range of ' \
         '80% and above. Please investigate the reason for the low efficiency. ' \
-        'For instance, have you conducted a scaling analysis? For more info:',
+        'For instance, have you conducted a scaling analysis? For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
@@ -222,7 +222,7 @@ condition = '(self.nnodes == "1") and (int(self.ncpus) > 1) and (not self.gpus) 
 note = ('f"The CPU utilization of this job ({self.cpu_efficiency}%) is{approx}equal ' \
         'to 1 divided by the number of allocated CPU-cores ' \
         '(1/{self.ncpus}={round(eff_if_serial)}%). This suggests that you may be ' \
-        'running a code that can only use 1 CPU-core. If this is true then"' \
+        'running a code that can only use 1 CPU-core. If this is true then' \
         'allocating more than 1 CPU-core is wasteful. Please consult the ' \
         'documentation for the software to see if it is parallelized. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")

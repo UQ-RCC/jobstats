@@ -180,7 +180,7 @@ class JobStats:
                 self.error("Failed to lookup jobid %s." % self.jobid)
 
         self.gpus = 0
-        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres:
+        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres and 'rocm' not in self.partition:
             for part in self.tres.split(","):
                 if "gres/gpu=" in part:
                     self.gpus = int(part.split("=")[-1])
