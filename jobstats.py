@@ -107,10 +107,13 @@ class JobStats:
 
     # report an error on stderr and fail
     def error(self, msg):
-        sys.stderr.write("%s\n" % msg)
-        if self.debug_syslog:
-            syslog.syslog(msg)
-        sys.exit(1)
+        if __name__ == "__main__":
+            sys.stderr.write("%s\n" % msg)
+            if self.debug_syslog:
+                syslog.syslog(msg)
+            sys.exit(1)
+        else:
+            raise Exception(msg)
 
     def debug_print(self, msg):
         if self.debug:
