@@ -37,6 +37,13 @@ CORES_PER_NODE = {"bunya":96, }
 INTERACTIVE_STR = 'OOD'
 INTERACTIVE_PARTITIONS = [ 'cpu_viz', 'gpu_viz' ]
 
+DEFAULT_GPU_VENDOR = "NVIDIA"
+
+GPU_CARD_SERIES_AMD = [
+    "mi210",
+    "mi300x",
+]
+
 #########################################################################################
 ##                               C U S T O M    N O T E S                              ##
 ##                                                                                     ##
@@ -173,7 +180,7 @@ note = ('f"This job only needed {self.time_efficiency}% of the requested time ' 
         'For future jobs, please request less time by modifying ' \
         'the --time Slurm directive. This will ' \
         'lower your queue times and allow the Slurm job scheduler to work more ' \
-        '"effectively for all users. For more info:"',
+        'effectively for all users. For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))

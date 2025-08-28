@@ -50,6 +50,7 @@ class JobStats:
         self.force_recalc = force_recalc
         self.simple = simple
         self.sp_node = {}
+        self.gpu_vendor = "UNKNOWN"
         self.txt_bold   = color[0]
         self.txt_red    = color[1]
         self.txt_normal = color[2]
@@ -180,10 +181,9 @@ class JobStats:
                 self.error("Failed to lookup jobid %s." % self.jobid)
 
         self.gpus = 0
-        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres and 'rocm' not in self.partition:
-            for part in self.tres.split(","):
-                if "gres/gpu=" in part:
-                    self.gpus = int(part.split("=")[-1])
+        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres:
+            self.gpus = self.detect_gpu_count()
+            self.gpu_vendor = self.detect_gpu_vendor()
  
         if self.timelimitraw.isnumeric():
             self.timelimitraw = int(self.timelimitraw)
@@ -205,6 +205,28 @@ class JobStats:
             return True
         else:
             return False
+
+    def detect_gpu_count(self):
+        for part in self.tres.split(","):
+            if "gres/gpu=" in part:
+                return int(part.split("=")[-1])
+        return 0
+
+    # Check the tres card series (see config.GPU_CARD_SERIES_AMD for list of cards)
+    def detect_gpu_vendor(self):
+        for part in self.tres.split(","):
+            if "gres/gpu:" in part:
+
+                card_series = part[len("gres/gpu:"):]
+
+                if "=" in card_series:
+                    card_series = card_series.split("=", 2)[0]
+
+                for i in c.GPU_CARD_SERIES_AMD:
+                    if i == card_series:
+                        return "AMD"
+                
+        return c.DEFAULT_GPU_VENDOR
 
     # extract info out of what was returned
     # sp = hash indexed by node
@@ -278,9 +300,16 @@ class JobStats:
 
         # and now GPUs
         if self.gpus:
-            self.get_data('gpu_total_memory', "max_over_time((nvidia_gpu_memory_total_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
-            self.get_data('gpu_used_memory', "max_over_time((nvidia_gpu_memory_used_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
-            self.get_data('gpu_utilization', "avg_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+            if self.gpu_vendor == "NVIDIA":
+                # nVidia card stats (job id is a time series)
+                self.get_data('gpu_total_memory', "max_over_time((nvidia_gpu_memory_total_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+                self.get_data('gpu_used_memory', "max_over_time((nvidia_gpu_memory_used_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+                self.get_data('gpu_utilization', "avg_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+            elif self.gpu_vendor == "AMD":
+                # AMD card stats (job id is a tag)
+                self.get_data('gpu_total_memory', "max_over_time(amd_gpu_total_vram{cluster='%s', job_id='%s'}[%ds:])")
+                self.get_data('gpu_used_memory', "max_over_time(amd_gpu_used_vram{cluster='%s', job_id='%s'}[%ds:])")
+                self.get_data('gpu_utilization', "avg_over_time(amd_gpu_gfx_activity{cluster='%s', job_id='%s'}[%ds:])")
 
     def human_bytes(self, size, decimal_places=1):
         size=float(size)
@@ -499,6 +528,7 @@ class JobStats:
         print(self.cpu_memory_formatted())
         if self.gpus:
             print(f"           GPUs: {self.gpus}")
+            print(f"     GPU Vendor: {self.gpu_vendor}")
         print(f"  QOS/Partition: {self.qos}/{self.partition}")
         print(f"        Cluster: {self.cluster}")
         print(f"     Start Time: {self.human_datetime(self.start)}")
@@ -550,7 +580,7 @@ class JobStats:
                 print("  GPU utilization  " + draw_meter(round(self.gpu_utilization), "gpu", util=True))
             # overall gpu memory usage
             overall, overall_total = self.gpu_mem_total__used_alloc
-            gpu_memory_usage = round(100 * overall / overall_total)
+            gpu_memory_usage = round(100 * overall / overall_total) if overall_total != 0 else 0
             print("  GPU memory usage " + draw_meter(gpu_memory_usage, "gpu"))
         print()
         print(f"                              {self.txt_bold}Detailed Utilization{self.txt_normal}")
@@ -619,41 +649,68 @@ class JobStats:
             overall = 0
             overall_gpu_count = 0
             self.gpu_util__node_util_index = []
-            key_found = True
-            for n in sp_node:
-                d = sp_node[n]
-                if 'gpu_utilization' in d:
-                    gpus = list(d['gpu_utilization'].keys())
-                    gpus.sort()
-                    for g in gpus:
-                        util = d['gpu_utilization'][g]
-                        overall += util
-                        overall_gpu_count += 1
-                        self.gpu_util__node_util_index.append((n, util, g))
+
+            if self.gpu_vendor == "NVIDIA":
+                # Parse query results for nVidia
+                key_found = True
+                for n in sp_node:
+                    d = sp_node[n]
+                    if 'gpu_utilization' in d:
+                        gpus = list(d['gpu_utilization'].keys())
+                        gpus.sort()
+                        for g in gpus:
+                            util = d['gpu_utilization'][g]
+                            overall += util
+                            overall_gpu_count += 1
+                            self.gpu_util__node_util_index.append((n, util, g))
+                    else:
+                        # this branch deals with mig
+                        key_found = False
+                        self.gpu_util__node_util_index.append((n, 50, "0"))
+                if key_found:
+                    self.gpu_util_total__util_gpus = (overall, overall_gpu_count)
                 else:
                     # this branch deals with mig
-                    key_found = False
-                    self.gpu_util__node_util_index.append((n, 50, "0"))
-            if key_found:
-                self.gpu_util_total__util_gpus = (overall, overall_gpu_count)
-            else:
-                # this branch deals with mig
-                self.gpu_util_total__util_gpus = (50, 1)
+                    self.gpu_util_total__util_gpus = (50, 1)
+            elif self.gpu_vendor == "AMD":
+                # Parse query results for AMD
+                for n, d in sp_node.items():
+                    gpu_util = 0
+                    if 'gpu_utilization' in d:
+                        gpu_util = d['gpu_utilization']
+                    g = overall_gpu_count
+                    self.gpu_util__node_util_index.append((n, gpu_util, g))
 
+                    overall += gpu_util
+                    overall_gpu_count += 1
+
+                self.gpu_util_total__util_gpus = (overall, overall_gpu_count)
+            
             # gpu memory usage
             overall = 0
             overall_total = 0
             self.gpu_mem__node_used_total_index = []
-            for n in sp_node:
-                d = sp_node[n]
-                gpus = list(d.get('gpu_total_memory',{}).keys())
-                gpus.sort()
-                for g in gpus:
-                    used = d['gpu_used_memory'][g]
-                    total = d['gpu_total_memory'][g]
-                    overall += used
-                    overall_total += total
-                    self.gpu_mem__node_used_total_index.append((n, used, total, g))
+            if self.gpu_vendor == "NVIDIA":
+                for n in sp_node:
+                    d = sp_node[n]
+                    gpus = list(d.get('gpu_total_memory',{}).keys())
+                    gpus.sort()
+                    for g in gpus:
+                        used = d['gpu_used_memory'][g]
+                        total = d['gpu_total_memory'][g]
+                        overall += used
+                        overall_total += total
+                        self.gpu_mem__node_used_total_index.append((n, used, total, g))
+            elif self.gpu_vendor == "AMD":
+                g = 0
+                for n, d in sp_node.items():
+                    if 'gpu_used_memory' in d and 'gpu_total_memory' in d:
+                        gpu_memory_used = d['gpu_used_memory']
+                        gpu_memory_total = d['gpu_total_memory']
+                        overall += gpu_memory_used
+                        overall_total += gpu_memory_total
+                        self.gpu_mem__node_used_total_index.append((n, gpu_memory_used, gpu_memory_total, g))
+                        g += 1
             self.gpu_mem_total__used_alloc = (overall, overall_total)
 
         self.simple_output() if self.simple else self.enhanced_output()
