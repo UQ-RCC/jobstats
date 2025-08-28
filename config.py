@@ -15,7 +15,7 @@ CPU_UTIL_RED   = 65  # percentage
 CPU_UTIL_BLACK = 80  # percentage
 TIME_EFFICIENCY_RED   = 40  # percentage
 TIME_EFFICIENCY_BLACK = 70  # percentage
-MIN_MEMORY_USAGE      = 70  # percentage
+MIN_MEMORY_USAGE      = 40  # percentage
 MIN_RUNTIME_SECONDS   = 10 * SAMPLING_PERIOD  # seconds
 
 # translate cluster names in Slurm DB to informal names
