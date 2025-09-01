@@ -128,6 +128,7 @@ class JobStats:
                   "end",
                   "cluster",
                   "reqtres",
+                  "alloctres",
                   "admincomment",
                   "user",
                   "account",
@@ -154,7 +155,8 @@ class JobStats:
                 self.start        = i.get('Start', None)
                 self.end          = i.get('End', None)
                 self.cluster      = i.get('Cluster', None)
-                self.tres         = i.get('ReqTRES', None)
+                self.tres_req     = i.get('ReqTRES', None)
+                self.tres_alloc   = i.get('AllocTRES', None)
                 if self.force_recalc:
                     self.data     = None
                 else:
@@ -169,7 +171,7 @@ class JobStats:
                 self.qos          = i.get('QOS', None)
                 self.partition    = i.get('Partition', None)
                 self.jobname      = i.get('JobName', None)
-                self.debug_print('jobidraw=%s, start=%s, end=%s, cluster=%s, tres=%s, data=%s, user=%s, account=%s, state=%s, timelimit=%s, nodes=%s, ncpus=%s, reqmem=%s, qos=%s, partition=%s, jobname=%s' % (self.jobidraw, self.start, self.end, self.cluster, self.tres, self.data, self.user, self.account, self.state, self.timelimitraw, self.nnodes, self.ncpus, self.reqmem, self.qos, self.partition, self.jobname))
+                self.debug_print('jobidraw=%s, start=%s, end=%s, cluster=%s, tres_req=%s, tres_alloc=%s, data=%s, user=%s, account=%s, state=%s, timelimit=%s, nodes=%s, ncpus=%s, reqmem=%s, qos=%s, partition=%s, jobname=%s' % (self.jobidraw, self.start, self.end, self.cluster, self.tres_req, self.tres_alloc, self.data, self.user, self.account, self.state, self.timelimitraw, self.nnodes, self.ncpus, self.reqmem, self.qos, self.partition, self.jobname))
         except Exception:
             self.error("Failed to lookup jobid %s" % self.jobid)
  
@@ -181,7 +183,7 @@ class JobStats:
                 self.error("Failed to lookup jobid %s." % self.jobid)
 
         self.gpus = 0
-        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres:
+        if self.tres_req != None and 'gres/gpu=' in self.tres_req and 'gres/gpu=0,' not in self.tres_req:
             self.gpus = self.detect_gpu_count()
             self.gpu_vendor = self.detect_gpu_vendor()
  
@@ -207,16 +209,16 @@ class JobStats:
             return False
 
     def detect_gpu_count(self):
-        for part in self.tres.split(","):
+        for part in self.tres_alloc.split(","):
             if "gres/gpu=" in part:
                 return int(part.split("=")[-1])
         return 0
 
     # Check the tres card series (see config.GPU_CARD_SERIES_AMD for list of cards)
     def detect_gpu_vendor(self):
-        for part in self.tres.split(","):
+        for part in self.tres_alloc.split(","):
             if "gres/gpu:" in part:
-
+                # Check for specific gpu resources requested
                 card_series = part[len("gres/gpu:"):]
 
                 if "=" in card_series:
@@ -225,7 +227,7 @@ class JobStats:
                 for i in c.GPU_CARD_SERIES_AMD:
                     if i == card_series:
                         return "AMD"
-                
+
         return c.DEFAULT_GPU_VENDOR
 
     # extract info out of what was returned
@@ -241,6 +243,8 @@ class JobStats:
             for i in j:
                 node=i['metric']['instance'].split(':')[0]
                 minor = i['metric'].get('minor_number', None)
+                if minor == None:
+                    minor = i['metric'].get('gpu_id', None) # AMD
                 if 'value' in i:
                     v=i['value'][1]
                 if 'values' in i:
@@ -675,15 +679,15 @@ class JobStats:
             elif self.gpu_vendor == "AMD":
                 # Parse query results for AMD
                 for n, d in sp_node.items():
-                    gpu_util = 0
                     if 'gpu_utilization' in d:
-                        gpu_util = d['gpu_utilization']
-                    g = overall_gpu_count
-                    self.gpu_util__node_util_index.append((n, gpu_util, g))
-
-                    overall += gpu_util
-                    overall_gpu_count += 1
-
+                        gpu_util_nodes = d['gpu_utilization']
+                        gpu_keys = list(gpu_util_nodes.keys())
+                        gpu_keys.sort()
+                        for g in gpu_keys:
+                            gpu_util = gpu_util_nodes[g]
+                            overall += gpu_util
+                            overall_gpu_count += 1
+                            self.gpu_util__node_util_index.append((n, gpu_util, g))
                 self.gpu_util_total__util_gpus = (overall, overall_gpu_count)
             
             # gpu memory usage
@@ -702,15 +706,18 @@ class JobStats:
                         overall_total += total
                         self.gpu_mem__node_used_total_index.append((n, used, total, g))
             elif self.gpu_vendor == "AMD":
-                g = 0
                 for n, d in sp_node.items():
                     if 'gpu_used_memory' in d and 'gpu_total_memory' in d:
-                        gpu_memory_used = d['gpu_used_memory']
-                        gpu_memory_total = d['gpu_total_memory']
-                        overall += gpu_memory_used
-                        overall_total += gpu_memory_total
-                        self.gpu_mem__node_used_total_index.append((n, gpu_memory_used, gpu_memory_total, g))
-                        g += 1
+                        gpu_memory_used_nodes = d['gpu_used_memory']
+                        gpu_memory_total_nodes = d['gpu_total_memory']
+                        gpu_keys = list(gpu_memory_total_nodes.keys())
+                        gpu_keys.sort()
+                        for g in gpu_keys:
+                            mem_used = gpu_memory_used_nodes[g] * 1024 * 1024 # Convert MB to Bytes
+                            mem_total = gpu_memory_total_nodes[g] * 1024 * 1024 # Convert MB to Bytes
+                            overall += mem_used
+                            overall_total += mem_total
+                            self.gpu_mem__node_used_total_index.append((n, mem_used, mem_total, g))
             self.gpu_mem_total__used_alloc = (overall, overall_total)
 
         self.simple_output() if self.simple else self.enhanced_output()
