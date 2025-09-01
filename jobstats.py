@@ -128,6 +128,7 @@ class JobStats:
                   "end",
                   "cluster",
                   "reqtres",
+                  "alloctres",
                   "admincomment",
                   "user",
                   "account",
@@ -154,7 +155,8 @@ class JobStats:
                 self.start        = i.get('Start', None)
                 self.end          = i.get('End', None)
                 self.cluster      = i.get('Cluster', None)
-                self.tres         = i.get('ReqTRES', None)
+                self.tres_req     = i.get('ReqTRES', None)
+                self.tres_alloc   = i.get('AllocTRES', None)
                 if self.force_recalc:
                     self.data     = None
                 else:
@@ -169,7 +171,7 @@ class JobStats:
                 self.qos          = i.get('QOS', None)
                 self.partition    = i.get('Partition', None)
                 self.jobname      = i.get('JobName', None)
-                self.debug_print('jobidraw=%s, start=%s, end=%s, cluster=%s, tres=%s, data=%s, user=%s, account=%s, state=%s, timelimit=%s, nodes=%s, ncpus=%s, reqmem=%s, qos=%s, partition=%s, jobname=%s' % (self.jobidraw, self.start, self.end, self.cluster, self.tres, self.data, self.user, self.account, self.state, self.timelimitraw, self.nnodes, self.ncpus, self.reqmem, self.qos, self.partition, self.jobname))
+                self.debug_print('jobidraw=%s, start=%s, end=%s, cluster=%s, tres_req=%s, tres_alloc=%s, data=%s, user=%s, account=%s, state=%s, timelimit=%s, nodes=%s, ncpus=%s, reqmem=%s, qos=%s, partition=%s, jobname=%s' % (self.jobidraw, self.start, self.end, self.cluster, self.tres_req, self.tres_alloc, self.data, self.user, self.account, self.state, self.timelimitraw, self.nnodes, self.ncpus, self.reqmem, self.qos, self.partition, self.jobname))
         except Exception:
             self.error("Failed to lookup jobid %s" % self.jobid)
  
@@ -181,7 +183,7 @@ class JobStats:
                 self.error("Failed to lookup jobid %s." % self.jobid)
 
         self.gpus = 0
-        if self.tres != None and 'gres/gpu=' in self.tres and 'gres/gpu=0,' not in self.tres:
+        if self.tres_req != None and 'gres/gpu=' in self.tres_req and 'gres/gpu=0,' not in self.tres_req:
             self.gpus = self.detect_gpu_count()
             self.gpu_vendor = self.detect_gpu_vendor()
  
@@ -207,14 +209,14 @@ class JobStats:
             return False
 
     def detect_gpu_count(self):
-        for part in self.tres.split(","):
+        for part in self.tres_alloc.split(","):
             if "gres/gpu=" in part:
                 return int(part.split("=")[-1])
         return 0
 
     # Check the tres card series (see config.GPU_CARD_SERIES_AMD for list of cards)
     def detect_gpu_vendor(self):
-        for part in self.tres.split(","):
+        for part in self.tres_alloc.split(","):
             if "gres/gpu:" in part:
                 # Check for specific gpu resources requested
                 card_series = part[len("gres/gpu:"):]
@@ -224,11 +226,6 @@ class JobStats:
 
                 for i in c.GPU_CARD_SERIES_AMD:
                     if i == card_series:
-                        return "AMD"
-            else:
-                # If user asked for any gpu, check the partition
-                for i in c.PARTITIONS_AMD:
-                    if i == self.partition:
                         return "AMD"
 
         return c.DEFAULT_GPU_VENDOR
