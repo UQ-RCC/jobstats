@@ -257,7 +257,13 @@ NOTES.append((condition, note, style))
 #        "https://myadroit.princeton.edu/pun/sys/jobstats  (VPN required off-campus)")
 #style = "normal"
 #NOTES.append((condition, note, style))
-#
+
+# more details for bunya (OnBunya)
+condition = 'True'
+note = ('For additional job metrics including metrics plotted against time: ',
+        'f"https://onbunya.rcc.uq.edu.au/grafana/d/HRLkiLS7k/ondemand-clusters/?orgId=2&theme=light&kiosk&from=$style = "normal"
+NOTES.append((condition, note, style))
+
 # example of a simple note that is always displayed
 condition = 'True'
 note = ("Thank you for using Bunya! Please acknowledge Bunya in your research. For more info:","https://rcc.uq.edu.au/about/acknowledging-rcc")
