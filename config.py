@@ -261,7 +261,7 @@ NOTES.append((condition, note, style))
 # more details for bunya (OnBunya)
 condition = 'True'
 note = ('For additional job metrics including metrics plotted against time: ',
-        'f"https://onbunya.rcc.uq.edu.au/grafana/d/HRLkiLS7k/ondemand-clusters/?orgId=2&theme=light&kiosk&from={self.start}000&to={self.end}000&var-JobID={self.jobidraw}"')
+        'f"https://onbunya.rcc.uq.edu.au/grafana/d/HRLkiLS7k/ondemand-clusters/?orgId=2&theme=light&kiosk&from={self.start:.0f}000&to={self.end:.0f}000&var-JobID={self.jobidraw}"')
 style = "normal"
 NOTES.append((condition, note, style))
 
