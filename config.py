@@ -61,7 +61,7 @@ note = ("This job did not use the GPU. Please resolve this " \
         "and it causes your subsequent jobs to have a lower priority. " \
         "Is the code GPU-enabled? " \
         "Please consult the documentation for the software. For more info:",
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing")
+        "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -74,7 +74,7 @@ note = ('f"This job did not use {num_unused_gpus} of the {self.gpus} allocated G
         '"and it causes your subsequent jobs to have a lower priority. Is the "' \
         '"code capable of using multiple GPUs? Please consult the documentation for "' \
         '"the software. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing")
+        "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -261,7 +261,7 @@ NOTES.append((condition, note, style))
 # more details for bunya (OnBunya)
 condition = 'True'
 note = ('For additional job metrics including metrics plotted against time: ',
-        'f"https://onbunya.rcc.uq.edu.au/grafana/d/HRLkiLS7k/ondemand-clusters/?orgId=2&theme=light&kiosk&from={self.start}000&to={self.end}000&var-JobID={self.jobidraw}"')
+        'f"https://onbunya.rcc.uq.edu.au/grafana/d/HRLkiLS7k/ondemand-clusters/?orgId=2&theme=light&kiosk&from={self.start:.0f}000&to={self.end:.0f}000&var-JobID={self.jobidraw}"')
 style = "normal"
 NOTES.append((condition, note, style))
 
