@@ -116,7 +116,7 @@ condition = '(not zero_cpu) and (not self.gpus) and (self.cpu_efficiency <= c.CP
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value ' \
         'is{somewhat}low compared to the target range of ' \
         '80% and above. Please investigate the reason for the low efficiency. ' \
-        'For instance, have you conducted a scaling analysis? For more info:',
+        'For instance, have you conducted a scaling analysis? For more info:"',
         "https://github.com/UQ-RCC/hpc-docs/blob/main/guides/Bunya-User-Guide.md")
 style = "normal"
 NOTES.append((condition, note, style))
