@@ -624,6 +624,9 @@ class JobStats:
         total_cores = 0
         self.cpu_util__node_used_alloc_cores = []
         for n in sp_node:
+            if 'total_time' not in sp_node[n] or 'cpus' not in sp_node[n]:
+                self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
+                continue            
             used = sp_node[n]['total_time']
             cores = sp_node[n]['cpus']
             alloc = self.diff * cores
@@ -639,6 +642,9 @@ class JobStats:
         total_cores = 0
         self.cpu_mem__node_used_alloc_cores = []
         for n in sp_node:
+            if 'used_memory' not in sp_node[n] or 'total_memory' not in sp_node[n] or 'cpus' not in sp_node[n]:
+                self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
+                continue            
             used = sp_node[n]['used_memory']
             alloc = sp_node[n]['total_memory']
             cores = sp_node[n]['cpus']
