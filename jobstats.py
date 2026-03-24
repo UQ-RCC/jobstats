@@ -574,7 +574,11 @@ class JobStats:
         if self.gpus:
             # overall gpu utilization
             overall, overall_gpu_count = self.gpu_util_total__util_gpus
-            self.gpu_utilization = overall / overall_gpu_count
+            if overall_gpu_count:
+                self.gpu_utilization = overall / overall_gpu_count 
+            else:
+                # Metrics error: no gpu stats
+                self.gpu_utilization = 0
             if self.partition == "mig":
                 unknown = f"  GPU utilization  {self.txt_bold}[{self.txt_normal}" \
                           f"     GPU utilization is unknown for MIG jobs      " \
