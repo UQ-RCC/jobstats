@@ -107,10 +107,13 @@ class JobStats:
 
     # report an error on stderr and fail
     def error(self, msg):
-        sys.stderr.write("%s\n" % msg)
-        if self.debug_syslog:
-            syslog.syslog(msg)
-        sys.exit(1)
+        if __name__ == "__main__":
+            sys.stderr.write("%s\n" % msg)
+            if self.debug_syslog:
+                syslog.syslog(msg)
+            sys.exit(1)
+        else:
+            raise Exception(msg)
 
     def debug_print(self, msg):
         if self.debug:
@@ -626,7 +629,7 @@ class JobStats:
         self.cpu_util__node_used_alloc_cores = []
         for n in sp_node:
             if 'total_time' not in sp_node[n] or 'cpus' not in sp_node[n]:
-                self.cpu_util__node_used_alloc_cores.append((n, 'missing', 'missing', 'missing'))
+                self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
                 continue
             used = sp_node[n]['total_time']
             cores = sp_node[n]['cpus']
@@ -644,7 +647,7 @@ class JobStats:
         self.cpu_mem__node_used_alloc_cores = []
         for n in sp_node:
             if 'used_memory' not in sp_node[n] or 'total_memory' not in sp_node[n] or 'cpus' not in sp_node[n]:
-                self.cpu_util__node_used_alloc_cores.append((n, 'missing', 'missing', 'missing'))
+                self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
                 continue
             used = sp_node[n]['used_memory']
             alloc = sp_node[n]['total_memory']
