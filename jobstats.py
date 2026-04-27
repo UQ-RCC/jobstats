@@ -311,9 +311,9 @@ class JobStats:
                 self.get_data('gpu_utilization', "avg_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
             elif self.gpu_vendor == "AMD":
                 # AMD card stats (job id is a tag)
-                self.get_data('gpu_total_memory', "max_over_time(amd_gpu_total_vram{cluster='%s', job_id='%s'}[%ds:])")
-                self.get_data('gpu_used_memory', "max_over_time(amd_gpu_used_vram{cluster='%s', job_id='%s'}[%ds:])")
-                self.get_data('gpu_utilization', "avg_over_time(amd_gpu_gfx_activity{cluster='%s', job_id='%s'}[%ds:])")
+                self.get_data('gpu_total_memory', "max_over_time(max without(kfd_process_id) (amd_gpu_total_vram{cluster='%s', job_id='%s'})[%ds:])")
+                self.get_data('gpu_used_memory', "max_over_time(max without(kfd_process_id) (amd_gpu_used_vram{cluster='%s', job_id='%s'})[%ds:])")
+                self.get_data('gpu_utilization', "avg_over_time(max without(kfd_process_id) (amd_gpu_gfx_activity{cluster='%s', job_id='%s'})[%ds:])")
 
     def human_bytes(self, size, decimal_places=1):
         size=float(size)
@@ -630,7 +630,7 @@ class JobStats:
         for n in sp_node:
             if 'total_time' not in sp_node[n] or 'cpus' not in sp_node[n]:
                 self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
-                continue            
+                continue
             used = sp_node[n]['total_time']
             cores = sp_node[n]['cpus']
             alloc = self.diff * cores
@@ -648,7 +648,7 @@ class JobStats:
         for n in sp_node:
             if 'used_memory' not in sp_node[n] or 'total_memory' not in sp_node[n] or 'cpus' not in sp_node[n]:
                 self.cpu_util__node_used_alloc_cores.append((n, 0, 1, 0))
-                continue            
+                continue
             used = sp_node[n]['used_memory']
             alloc = sp_node[n]['total_memory']
             cores = sp_node[n]['cpus']
